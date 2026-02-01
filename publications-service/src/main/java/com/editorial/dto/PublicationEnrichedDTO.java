@@ -1,4 +1,4 @@
-﻿package com.editorial.dto;
+package com.editorial.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

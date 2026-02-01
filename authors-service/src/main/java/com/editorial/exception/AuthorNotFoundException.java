@@ -1,4 +1,4 @@
-﻿package com.editorial.exception;
+package com.editorial.exception;
 
 /**
  * AuthorNotFoundException - Excepcion cuando autor no es encontrado

@@ -1,4 +1,4 @@
-﻿# Editorial Digital — Microservicios de Autores y Publicaciones
+# Editorial Digital — Microservicios de Autores y Publicaciones
 
 Sistema de gestion editorial basado en arquitectura de microservicios,
 construido con Spring Boot, React y Docker Compose.

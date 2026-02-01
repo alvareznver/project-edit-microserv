@@ -1,4 +1,4 @@
-﻿package com.editorial.exception;
+package com.editorial.exception;
 
 /**
  * PublicationNotFoundException - Publicacion no encontrada

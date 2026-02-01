@@ -1,4 +1,4 @@
-﻿package com.editorial.exception;
+package com.editorial.exception;
 
 /**
  * InvalidPublicationException - Datos de publicacion invalidos

@@ -1,4 +1,4 @@
-﻿package com.editorial.exception;
+package com.editorial.exception;
 
 /**
  * AuthorNotFoundException - Autor no existe en Authors Service

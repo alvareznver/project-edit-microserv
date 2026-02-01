@@ -1,4 +1,4 @@
-﻿package com.editorial.exception;
+package com.editorial.exception;
 
 /**
  * InvalidAuthorException - Excepcion cuando datos de autor son invalidos
