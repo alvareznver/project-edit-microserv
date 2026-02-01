@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: publications-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/publications_db}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    properties:
+      hibernate:
+        dialect: ${SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT:org.hibernate.dialect.MySQL8Dialect}
+        format_sql: true
+    show-sql: false
+
+server:
+  port: ${SERVER_PORT:8081}
+  servlet:
+    context-path: /
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+# Configuración de cliente HTTP para Authors Service
+authors:
+  service:
+    url: ${AUTHORS_SERVICE_URL:http://localhost:8080}
+    connect-timeout: 5000
+    read-timeout: 10000
+
+logging:
+  level:
+    root: INFO
+    com.editorial: DEBUG

@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # Base de datos de Autores
+  db-authors:
+    image: postgres:15-alpine
+    container_name: db-authors
+    environment:
+      POSTGRES_DB: ${DB_AUTHORS_NAME:-authors_db}
+      POSTGRES_USER: ${DB_AUTHORS_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_AUTHORS_PASSWORD:-admin123}
+    ports:
+      - "${DB_AUTHORS_PORT:-5432}:5432"
+    volumes:
+      - authors_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - editorial-network
+
+  # Base de datos de Publicaciones
+  db-publications:
+    image: mysql:8.0
+    container_name: db-publications
+    environment:
+      MYSQL_DATABASE: ${DB_PUBLICATIONS_NAME:-publications_db}
+      MYSQL_USER: ${DB_PUBLICATIONS_USER:-admin}
+      MYSQL_PASSWORD: ${DB_PUBLICATIONS_PASSWORD:-admin123}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+    ports:
+      - "${DB_PUBLICATIONS_PORT:-3306}:3306"
+    volumes:
+      - publications_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - editorial-network
+
+  # Microservicio de Autores
+  authors-service:
+    build:
+      context: ./authors-service
+      dockerfile: Dockerfile
+    container_name: authors-service
+    ports:
+      - "${AUTHORS_SERVICE_PORT:-8080}:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-authors:5432/${DB_AUTHORS_NAME:-authors_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_AUTHORS_USER:-admin}
+      SPRING_DATASOURCE_PASSWORD: ${DB_AUTHORS_PASSWORD:-admin123}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+    depends_on:
+      db-authors:
+        condition: service_healthy
+    networks:
+      - editorial-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # Microservicio de Publicaciones
+  publications-service:
+    build:
+      context: ./publications-service
+      dockerfile: Dockerfile
+    container_name: publications-service
+    ports:
+      - "${PUBLICATIONS_SERVICE_PORT:-8081}:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-publications:3306/${DB_PUBLICATIONS_NAME:-publications_db}
+      SPRING_DATASOURCE_USERNAME: ${DB_PUBLICATIONS_USER:-admin}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PUBLICATIONS_PASSWORD:-admin123}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+      AUTHORS_SERVICE_URL: http://authors-service:8080
+    depends_on:
+      db-publications:
+        condition: service_healthy
+      authors-service:
+        condition: service_healthy
+    networks:
+      - editorial-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # Frontend (React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      REACT_APP_AUTHORS_API: http://localhost:8080
+      REACT_APP_PUBLICATIONS_API: http://localhost:8081
+    depends_on:
+      - authors-service
+      - publications-service
+    networks:
+      - editorial-network
+
+volumes:
+  authors_data:
+  publications_data:
+
+networks:
+  editorial-network:
+    driver: bridge
